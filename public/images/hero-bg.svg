@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <rect width="1920" height="1080" fill="#0A1628"/>
+  <circle cx="960" cy="400" r="300" fill="#C9A84C" opacity="0.05"/>
+  <circle cx="960" cy="400" r="200" fill="#C9A84C" opacity="0.08"/>
+  <circle cx="960" cy="400" r="100" fill="#C9A84C" opacity="0.12"/>
+  <text x="960" y="700" text-anchor="middle" fill="#C9A84C" font-family="serif" font-size="48" opacity="0.3">Set Apart</text>
+</svg>

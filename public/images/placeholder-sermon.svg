@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#1A2B4A"/>
+  <polygon points="400,150 650,400 150,400" fill="none" stroke="#C9A84C" stroke-width="2" opacity="0.3"/>
+  <circle cx="400" cy="300" r="80" fill="none" stroke="#C9A84C" stroke-width="3" opacity="0.4"/>
+  <polygon points="400,240 440,280 430,330 370,330 360,280" fill="#C9A84C" opacity="0.3"/>
+  <text x="400" y="480" text-anchor="middle" fill="#C9A84C" font-family="serif" font-size="20">Sermon</text>
+</svg>
