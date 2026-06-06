@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { projects } from "@/data/projects";
+import { projects as staticProjects } from "@/data/projects";
+import { getProjects } from "@/lib/wordpress";
 import { ProjectCard } from "@/components/common/ProjectCard";
 import { DonationForm } from "@/components/common/DonationForm";
 
@@ -24,7 +25,9 @@ const testimonies = [
   },
 ];
 
-export default function GivePage() {
+export default async function GivePage() {
+  const wpProjects = await getProjects();
+  const projects = wpProjects.length > 0 ? wpProjects : staticProjects;
   return (
     <>
       <section className="bg-primary pt-32 pb-20 px-4 sm:px-6 relative overflow-hidden border-b border-border/20">

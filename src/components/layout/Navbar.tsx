@@ -64,13 +64,24 @@ export function Navbar() {
           </Link>
         </nav>
 
-        <button
-          className="lg:hidden text-muted-foreground hover:text-primary p-2 rounded-lg hover:bg-muted transition-all"
-          onClick={() => setOpen(true)}
-          aria-label="Open menu"
-        >
-          <Menu className="size-5" />
-        </button>
+        <div className="lg:hidden flex items-center">
+          <button
+            className={cn(
+              "flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300",
+              scrolled || open
+                ? "text-navy border-navy/15 bg-navy/[0.04] hover:bg-navy/[0.08] hover:border-gold/50 hover:text-gold active:scale-95"
+                : "text-white border-white/25 bg-white/[0.07] hover:bg-white/[0.14] hover:border-white/50 active:scale-95"
+            )}
+            onClick={() => setOpen(true)}
+            aria-label="Open menu"
+          >
+            <div className="flex flex-col items-center justify-center gap-[3.5px]">
+              <span className={cn("block w-[18px] h-px rounded-full transition-all duration-300", scrolled || open ? "bg-current" : "bg-white/90")} />
+              <span className={cn("block w-[18px] h-px rounded-full transition-all duration-300", scrolled || open ? "bg-current" : "bg-white/90")} />
+              <span className={cn("block w-[18px] h-px rounded-full transition-all duration-300", scrolled || open ? "bg-current" : "bg-white/90")} />
+            </div>
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -83,7 +94,7 @@ export function Navbar() {
             <div className="flex items-center justify-between px-6 h-[72px] border-b border-border">
               <img src="/gdmi-logo.png" alt="GDMI" className="h-9 w-auto" />
               <button
-                className="text-muted-foreground hover:text-primary p-2 rounded-lg hover:bg-muted transition-all"
+                className="flex items-center justify-center w-12 h-12 rounded-full border-2 border-navy/15 bg-navy/[0.04] text-navy hover:bg-navy/[0.08] hover:border-gold/50 hover:text-gold active:scale-95 transition-all duration-300"
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
               >

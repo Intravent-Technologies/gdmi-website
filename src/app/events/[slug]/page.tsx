@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { events } from "@/data/events";
+import { events as staticEvents } from "@/data/events";
+import { getEvents } from "@/lib/wordpress";
 import { Calendar, MapPin, Clock, ArrowLeft } from "lucide-react";
 
 interface Props {
@@ -9,12 +10,16 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  return events.map((event) => ({ slug: event.slug }));
+  const wpEvents = await getEvents();
+  const items = wpEvents.length > 0 ? wpEvents : staticEvents;
+  return items.map((event) => ({ slug: event.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const event = events.find((e) => e.slug === slug);
+  const wpEvents = await getEvents();
+  const items = wpEvents.length > 0 ? wpEvents : staticEvents;
+  const event = items.find((e) => e.slug === slug);
   if (!event) return {};
   return {
     title: `${event.title} | GDMI Events`,
@@ -24,7 +29,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params;
-  const event = events.find((e) => e.slug === slug);
+  const wpEvents = await getEvents();
+  const items = wpEvents.length > 0 ? wpEvents : staticEvents;
+  const event = items.find((e) => e.slug === slug);
   if (!event) notFound();
 
   return (

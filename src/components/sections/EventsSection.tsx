@@ -1,11 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import { EventCard } from "@/components/common/EventCard";
-import { events } from "@/data/events";
+import { events as staticEvents } from "@/data/events";
 import { ArrowRight } from "lucide-react";
-
-const upcoming = events.filter((e) => e.status === "upcoming");
+import { useEvents } from "@/lib/use-data";
 
 export function EventsSection() {
+  const { data: wpEvents } = useEvents();
+  const upcoming = (wpEvents.length > 0 ? wpEvents : staticEvents).filter((e) => e.status === "upcoming");
   return (
     <section className="py-20 sm:py-24 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

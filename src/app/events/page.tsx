@@ -2,19 +2,22 @@
 
 import { useState, useMemo } from "react";
 import { EventCard } from "@/components/common/EventCard";
-import { events } from "@/data/events";
+import { events as staticEvents } from "@/data/events";
+import { useEvents } from "@/lib/use-data";
 
 const filters = ["All", "Upcoming", "Past"] as const;
 
 export default function EventsPage() {
   const [activeFilter, setActiveFilter] = useState<string>("All");
+  const { data: wpEvents } = useEvents();
+  const items = wpEvents.length > 0 ? wpEvents : staticEvents;
 
   const filtered = useMemo(
     () =>
       activeFilter === "All"
-        ? events
-        : events.filter((e) => e.status === activeFilter.toLowerCase()),
-    [activeFilter]
+        ? items
+        : items.filter((e) => e.status === activeFilter.toLowerCase()),
+    [activeFilter, items]
   );
 
   return (

@@ -3,7 +3,7 @@ import { YouTubeBackground } from "./YouTubeBackground";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-primary">
+    <section className="relative min-h-screen flex items-start justify-center overflow-hidden bg-primary pt-36 md:pt-44">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(201,168,76,0.06)_0%,_transparent_60%)]" />
       <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-gold/5 rounded-full blur-[120px]" />
       <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-gold/3 rounded-full blur-[100px]" />

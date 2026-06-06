@@ -4,11 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Play, Send, ExternalLink, CirclePlay, Headphones, ImagePlay } from "lucide-react";
-import { sermons } from "@/data/sermons";
+import { sermons as staticSermons } from "@/data/sermons";
+import { useSermons } from "@/lib/use-data";
 
 export default function MediaPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const { data: wpSermons } = useSermons();
+  const sermons = wpSermons.length > 0 ? wpSermons : staticSermons;
 
   const galleryImages = [
     { src: "https://images.unsplash.com/photo-1461784121038-f088ca1e7714?auto=format&fit=crop&w=600&q=80", title: "Crusade Outreach" },

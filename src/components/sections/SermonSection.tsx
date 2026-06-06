@@ -1,10 +1,14 @@
-import Link from "next/link";
-import { sermons } from "@/data/sermons";
-import { Play, ArrowRight } from "lucide-react";
+"use client";
 
-const latestSermon = sermons[0];
+import Link from "next/link";
+import { sermons as staticSermons } from "@/data/sermons";
+import { Play, ArrowRight } from "lucide-react";
+import { useSermons } from "@/lib/use-data";
 
 export function SermonSection() {
+  const { data: wpSermons } = useSermons();
+  const sermons = wpSermons.length > 0 ? wpSermons : staticSermons;
+  const latestSermon = sermons[0];
   return (
     <section className="py-20 sm:py-24 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

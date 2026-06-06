@@ -1,9 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import { ProjectCard } from "@/components/common/ProjectCard";
-import { projects } from "@/data/projects";
+import { projects as staticProjects } from "@/data/projects";
 import { ArrowRight } from "lucide-react";
+import { useProjects } from "@/lib/use-data";
 
 export function ProjectsSection() {
+  const { data: wpProjects } = useProjects();
+  const projects = wpProjects.length > 0 ? wpProjects : staticProjects;
   return (
     <section className="py-20 sm:py-24 bg-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

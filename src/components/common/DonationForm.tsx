@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,24 +10,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CreditCard, Building2, CheckCircle2 } from "lucide-react";
-import { projects } from "@/data/projects";
+import { Building2, CheckCircle2, Copy } from "lucide-react";
+import { projects as staticProjects } from "@/data/projects";
+import { useProjects } from "@/lib/use-data";
 
 const presetAmounts = [1000, 5000, 10000, 50000];
 
-const paystackKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "";
-
 export function DonationForm() {
-  const [mode, setMode] = useState<"once" | "recurring">("once");
+  const { data: wpProjects } = useProjects();
+  const projects = wpProjects.length > 0 ? wpProjects : staticProjects;
   const [amount, setAmount] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [project, setProject] = useState("general");
-  const [showBankDetails, setShowBankDetails] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   function handlePresetClick(value: number) {
     setAmount(value);
@@ -36,62 +35,20 @@ export function DonationForm() {
 
   function handleCustomChange(value: string) {
     const num = parseInt(value.replace(/,/g, ""), 10);
-    if (!isNaN(num)) {
-      setAmount(num);
-    } else {
-      setAmount(0);
-    }
+    if (!isNaN(num)) setAmount(num);
+    else setAmount(0);
     setCustomAmount(value);
   }
 
-  const handlePaystackPayment = useCallback(async () => {
-    if (!paystackKey) {
-      alert("Payment system not configured. Please use bank transfer below.");
-      setShowBankDetails(true);
-      return;
-    }
-
-    setProcessing(true);
-
+  async function handleCopy(text: string) {
     try {
-      const PaystackPop = (await import("@paystack/inline-js")).default;
-      const popup = new PaystackPop();
-      popup.newTransaction({
-        key: paystackKey,
-        email,
-        amount: amount * 100,
-        currency: "NGN",
-        firstname: name.split(" ")[0],
-        lastname: name.split(" ").slice(1).join(" "),
-        phone,
-        channels: ["card", "bank", "ussd", "qr", "mobile_money"],
-        label: `${name} — ${project === "general" ? "General Ministry" : project}`,
-        metadata: {
-          project,
-          mode,
-          phone,
-        },
-        onSuccess: () => {
-          setProcessing(false);
-          setSuccess(true);
-        },
-        onCancel: () => {
-          setProcessing(false);
-        },
-        onError: () => {
-          setProcessing(false);
-          alert("Payment failed. Please try again or use bank transfer.");
-          setShowBankDetails(true);
-        },
-      });
-    } catch {
-      setProcessing(false);
-      alert("Payment system error. Please use bank transfer below.");
-      setShowBankDetails(true);
-    }
-  }, [amount, email, name, phone, project, mode]);
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (amount < 100) {
       alert("Minimum donation is ₦100");
@@ -101,25 +58,28 @@ export function DonationForm() {
       alert("Please enter your email address");
       return;
     }
-    await handlePaystackPayment();
+    setSubmitted(true);
   }
 
-  if (success) {
+  if (submitted) {
     return (
       <div className="max-w-2xl mx-auto">
         <div className="bg-card border border-border rounded-2xl p-10 sm:p-14 text-center space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
           <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto border border-green-200">
             <CheckCircle2 className="size-8 text-green-600" />
           </div>
-          <h3 className="text-2xl font-bold text-primary">Payment Successful!</h3>
+          <h3 className="text-2xl font-bold text-primary">Thank You!</h3>
           <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-            Thank you for your gift of <span className="font-semibold text-primary">₦{amount.toLocaleString()}</span>. Your seed is sown into prophetic soil. You will receive a confirmation via email.
+            Your pledge of <span className="font-semibold text-primary">₦{amount.toLocaleString()}</span> for <span className="font-semibold">{project === "general" ? "General Ministry" : project}</span> has been noted.
+          </p>
+          <p className="text-muted-foreground text-xs max-w-sm mx-auto">
+            Kindly transfer the amount to the bank account below and send your proof of payment to us via WhatsApp or email.
           </p>
           <Button
             variant="outline"
             className="border-border text-muted-foreground hover:bg-muted rounded-xl mt-4"
             onClick={() => {
-              setSuccess(false);
+              setSubmitted(false);
               setAmount(0);
               setCustomAmount("");
               setName("");
@@ -128,7 +88,7 @@ export function DonationForm() {
               setProject("general");
             }}
           >
-            Make Another Gift
+            Start Over
           </Button>
         </div>
       </div>
@@ -137,83 +97,59 @@ export function DonationForm() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      {showBankDetails ? (
-        <div className="bg-card border border-border rounded-2xl p-8 sm:p-10 space-y-6 animate-fade-in shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-          <div className="text-center">
-            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4 border border-border">
-              <Building2 className="size-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-2xl font-bold text-primary">
-              Bank Transfer Details
-            </h3>
-            <p className="text-muted-foreground mt-2 text-sm">
-              Complete your donation via bank transfer. Send proof of payment to our WhatsApp or email.
-            </p>
+      <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 space-y-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4 border border-border">
+            <Building2 className="size-8 text-muted-foreground" />
           </div>
-          <div className="bg-muted/50 rounded-xl p-6 space-y-4 border border-border">
-            <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-muted-foreground text-sm">Account Name</span>
-              <span className="font-semibold text-primary text-sm text-right max-w-[60%]">
-                GBENGA DAHUNSI MINISTRY INTERNATIONAL
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-muted-foreground text-sm">Bank</span>
-              <span className="font-semibold text-primary/60 text-sm">
-                {process.env.NEXT_PUBLIC_BANK_NAME || "First Bank PLC"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-muted-foreground text-sm">Account No</span>
-              <span className="font-semibold text-gold text-lg tracking-wider">
-                {process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER || "1234567890"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground text-sm">Amount</span>
-              <span className="font-semibold text-gold text-xl">
-                ₦{amount.toLocaleString()}
-              </span>
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            className="w-full border-border text-muted-foreground hover:bg-muted rounded-xl"
-            onClick={() => setShowBankDetails(false)}
-          >
-            Try Card Payment
-          </Button>
+          <h3 className="text-2xl font-bold text-primary">Bank Transfer</h3>
+          <p className="text-muted-foreground mt-2 text-sm">
+            Make a direct bank transfer to the ministry account below.
+          </p>
         </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-6 sm:p-8 space-y-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-          <div className="flex gap-2 bg-muted rounded-xl p-1">
-            <button
-              type="button"
-              onClick={() => setMode("once")}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                mode === "once"
-                  ? "bg-background text-primary shadow-sm"
-                  : "text-muted-foreground hover:text-primary"
-              }`}
-            >
-              One-Time Gift
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("recurring")}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                mode === "recurring"
-                  ? "bg-background text-primary shadow-sm"
-                  : "text-muted-foreground hover:text-primary"
-              }`}
-            >
-              Recurring Gift
-            </button>
-          </div>
 
+        <div className="bg-muted/50 rounded-xl p-6 space-y-4 border border-border">
+          <div className="flex justify-between items-center py-2 border-b border-border">
+            <span className="text-muted-foreground text-sm">Account Name</span>
+            <span className="font-semibold text-primary text-sm text-right max-w-[60%]">
+              GBENGA DAHUNSI MINISTRY INTERNATIONAL
+            </span>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-border">
+            <span className="text-muted-foreground text-sm">Bank</span>
+            <span className="font-semibold text-primary/60 text-sm">
+              {process.env.NEXT_PUBLIC_BANK_NAME}
+            </span>
+          </div>
+          <div className="flex justify-between items-center py-2">
+            <span className="text-muted-foreground text-sm">Account No</span>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-gold text-lg tracking-wider">
+                {process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleCopy(process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER || "")}
+                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                title="Copy account number"
+              >
+                <Copy className="size-4 text-muted-foreground" />
+              </button>
+            </div>
+          </div>
+          {copied && (
+            <p className="text-xs text-green-600 text-center">Account number copied!</p>
+          )}
+        </div>
+
+        <p className="text-xs text-muted-foreground/50 text-center -mt-4">
+          Dollar account details coming soon.
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="text-sm font-medium text-primary/60 mb-3 block">
-              Select Amount
+              I'm Giving
             </label>
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
               {presetAmounts.map((preset) => (
@@ -288,36 +224,12 @@ export function DonationForm() {
 
           <Button
             type="submit"
-            disabled={processing}
-            className="w-full h-12 bg-primary text-primary-foreground hover:bg-navy-light text-base font-bold flex items-center justify-center gap-2 rounded-xl shadow-[0_1px_3px_rgba(15,29,53,0.15)] disabled:opacity-50"
+            className="w-full h-12 bg-primary text-primary-foreground hover:bg-navy-light text-base font-bold rounded-xl shadow-[0_1px_3px_rgba(15,29,53,0.15)]"
           >
-            {processing ? (
-              <span className="flex items-center gap-2">
-                <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Processing...
-              </span>
-            ) : (
-              <>
-                <CreditCard className="size-5" />
-                Pay ₦{amount.toLocaleString() || "—"}
-              </>
-            )}
+            I'll Transfer This Amount
           </Button>
-
-          <div className="text-center space-y-1">
-            <p className="text-xs text-muted-foreground/50">
-              Secured by Paystack &middot; Cards, Bank Transfer, USSD, QR
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowBankDetails(true)}
-              className="text-xs text-muted-foreground/40 hover:text-gold transition-colors"
-            >
-              Prefer bank transfer? Click here
-            </button>
-          </div>
         </form>
-      )}
+      </div>
     </div>
   );
 }
