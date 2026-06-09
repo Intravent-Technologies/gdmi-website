@@ -1,5 +1,4 @@
 import { client } from "@/sanity/lib/client";
-import type { SanityClient } from "@sanity/client";
 
 export interface Event {
   id: string;
@@ -99,6 +98,7 @@ const sermonsQuery = `*[_type == "sermon"] | order(date desc) {
 }`;
 
 export async function getEvents(): Promise<Event[]> {
+  if (!client) return [];
   try {
     const data = await client.fetch(eventsQuery);
     return (data || []).map((e: Record<string, unknown>) => ({
@@ -121,6 +121,7 @@ export async function getEvents(): Promise<Event[]> {
 }
 
 export async function getProjects(): Promise<Project[]> {
+  if (!client) return [];
   try {
     const data = await client.fetch(projectsQuery);
     return (data || []).map((e: Record<string, unknown>) => ({
@@ -144,6 +145,7 @@ export async function getProjects(): Promise<Project[]> {
 }
 
 export async function getSermons(): Promise<Sermon[]> {
+  if (!client) return [];
   try {
     const data = await client.fetch(sermonsQuery);
     return (data || []).map((e: Record<string, unknown>) => {
