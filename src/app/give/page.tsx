@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { projects as staticProjects } from "@/data/projects";
-import { getProjects } from "@/lib/wordpress";
+import { getProjects } from "@/lib/sanity";
 import { ProjectCard } from "@/components/common/ProjectCard";
 import { DonationForm } from "@/components/common/DonationForm";
 
