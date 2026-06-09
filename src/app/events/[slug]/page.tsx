@@ -2,24 +2,30 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { events as staticEvents } from "@/data/events";
-import { getEvents } from "@/lib/wordpress";
+import { getGoogleCalendarEvents } from "@/lib/google-calendar";
 import { Calendar, MapPin, Clock, ArrowLeft } from "lucide-react";
+
+export const revalidate = 3600;
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
+async function getEvent(slug: string) {
+  const gcalEvents = await getGoogleCalendarEvents();
+  const items = gcalEvents.length > 0 ? gcalEvents : staticEvents;
+  return items.find((e) => e.slug === slug) ?? null;
+}
+
 export async function generateStaticParams() {
-  const wpEvents = await getEvents();
-  const items = wpEvents.length > 0 ? wpEvents : staticEvents;
+  const gcalEvents = await getGoogleCalendarEvents();
+  const items = gcalEvents.length > 0 ? gcalEvents : staticEvents;
   return items.map((event) => ({ slug: event.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const wpEvents = await getEvents();
-  const items = wpEvents.length > 0 ? wpEvents : staticEvents;
-  const event = items.find((e) => e.slug === slug);
+  const event = await getEvent(slug);
   if (!event) return {};
   return {
     title: `${event.title} | GDMI Events`,
@@ -29,9 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params;
-  const wpEvents = await getEvents();
-  const items = wpEvents.length > 0 ? wpEvents : staticEvents;
-  const event = items.find((e) => e.slug === slug);
+  const event = await getEvent(slug);
   if (!event) notFound();
 
   return (
@@ -72,13 +76,15 @@ export default async function EventDetailPage({ params }: Props) {
 
       <section className="py-16 sm:py-20 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="aspect-video rounded-2xl overflow-hidden bg-muted border border-border mb-10 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-            <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-          </div>
+          {event.image && (
+            <div className="aspect-video rounded-2xl overflow-hidden bg-muted border border-border mb-10 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+            </div>
+          )}
 
           <div className="max-w-none">
-            <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
-              {event.fullDescription}
+            <p className="text-muted-foreground leading-relaxed text-sm sm:text-base whitespace-pre-line">
+              {event.fullDescription || event.description}
             </p>
           </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Event, Project, Sermon } from "@/lib/wordpress";
+import type { Event, Project, Sermon } from "@/lib/sanity";
 
 export function useEvents() {
   const [data, setData] = useState<Event[]>([]);
@@ -11,10 +11,10 @@ export function useEvents() {
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch("/api/data?type=events");
+        const res = await fetch("/api/google-calendar");
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
-        if (!cancelled) setData(json.data ?? json);
+        if (!cancelled) setData(Array.isArray(json) ? json : (json.data ?? []));
       } catch {
         // fallback ignored
       } finally {

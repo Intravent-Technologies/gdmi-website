@@ -1,118 +1,134 @@
-import { google } from "googleapis";
 import type { Event } from "@/data/events";
 
-const calendar = google.calendar("v3");
+const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
+const API_KEY = process.env.GOOGLE_CALENDAR_API_KEY;
 
-function formatGoogleDate(date: any): { date: string; time?: string } {
-  if (!date) return { date: "TBD" };
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
-  if (date.date) {
-    // All-day event
-    const d = new Date(date.date);
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    return { date: `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` };
-  } else if (date.dateTime) {
-    // Timed event
-    const d = new Date(date.dateTime);
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const dateStr = `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-    
-    // Format time
-    let hours = d.getHours();
-    const minutes = d.getMinutes().toString().padStart(2, "0");
-    const ampm = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-    const timeStr = `${hours}:${minutes} ${ampm}`;
-    
-    return { date: dateStr, time: timeStr };
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr.includes("T") ? dateStr : dateStr + "T12:00:00");
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "Africa/Lagos",
+  });
+}
+
+function formatTime(dateTimeStr: string): string {
+  const date = new Date(dateTimeStr);
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Africa/Lagos",
+  });
+}
+
+// Convention for Google Calendar event descriptions:
+//   Category: Summit
+//   Image: https://example.com/image.jpg
+//   (blank line)
+//   Your actual description text here...
+function parseDescription(raw: string | undefined): {
+  category: string;
+  image: string;
+  description: string;
+  fullDescription: string;
+} {
+  if (!raw) {
+    return { category: "Event", image: "", description: "", fullDescription: "" };
   }
-  
-  return { date: "TBD" };
-}
 
-function parseDescription(description: string | null | undefined): { description: string; fullDescription?: string } {
-  const clean = description?.replace(/<[^>]*>/g, "").trim() || "";
-  return {
-    description: clean.slice(0, 200),
-    fullDescription: clean
-  };
-}
+  const lines = raw.replace(/\r\n/g, "\n").split("\n");
+  let category = "Event";
+  let image = "";
+  const bodyLines: string[] = [];
 
-function getStatus(startDate: any): "upcoming" | "past" {
-  const now = new Date();
-  let eventStart: Date;
-  
-  if (startDate.date) {
-    eventStart = new Date(startDate.date);
-  } else if (startDate.dateTime) {
-    eventStart = new Date(startDate.dateTime);
-  } else {
-    return "upcoming";
+  for (const line of lines) {
+    const catMatch = line.match(/^Category:\s*(.+)/i);
+    const imgMatch = line.match(/^Image:\s*(https?:\/\/\S+)/i);
+    if (catMatch) {
+      category = catMatch[1].trim();
+    } else if (imgMatch) {
+      image = imgMatch[1].trim();
+    } else {
+      bodyLines.push(line);
+    }
   }
-  
-  return eventStart > now ? "upcoming" : "past";
+
+  const fullDescription = bodyLines.join("\n").trim();
+  const description =
+    fullDescription.length > 180
+      ? fullDescription.slice(0, 177) + "..."
+      : fullDescription;
+
+  return { category, image, description, fullDescription };
 }
 
-function getCategory(summary: string): string {
-  const lowerSummary = summary.toLowerCase();
-  if (lowerSummary.includes("crusade")) return "Crusade";
-  if (lowerSummary.includes("summit")) return "Summit";
-  if (lowerSummary.includes("conference")) return "Conference";
-  if (lowerSummary.includes("outreach")) return "Outreach";
-  if (lowerSummary.includes("women") || lowerSummary.includes("ladies")) return "Women's Conference";
-  return "General";
+interface GCalEvent {
+  id: string;
+  summary?: string;
+  description?: string;
+  location?: string;
+  start: { dateTime?: string; date?: string };
+  end: { dateTime?: string; date?: string };
 }
 
 export async function getGoogleCalendarEvents(): Promise<Event[]> {
+  if (!CALENDAR_ID || !API_KEY) return [];
+
+  const timeMin = new Date();
+  timeMin.setFullYear(timeMin.getFullYear() - 1);
+
+  const url = new URL(
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events`
+  );
+  url.searchParams.set("key", API_KEY);
+  url.searchParams.set("orderBy", "startTime");
+  url.searchParams.set("singleEvents", "true");
+  url.searchParams.set("maxResults", "100");
+  url.searchParams.set("timeMin", timeMin.toISOString());
+
   try {
-    const credentials = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
-      ? JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY)
-      : null;
-    const calendarId = process.env.GOOGLE_CALENDAR_ID;
+    const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const items: GCalEvent[] = data.items || [];
+    const now = new Date();
 
-    if (!credentials || !calendarId) {
-      console.warn("Google Calendar credentials not configured");
-      return [];
-    }
+    return items.map((item) => {
+      const startStr = item.start.dateTime || item.start.date || "";
+      const { category, image, description, fullDescription } =
+        parseDescription(item.description);
 
-    const auth = new google.auth.JWT(
-      credentials.client_email,
-      undefined,
-      credentials.private_key,
-      ["https://www.googleapis.com/auth/calendar.readonly"]
-    );
+      const startDate = new Date(
+        startStr.includes("T") ? startStr : startStr + "T12:00:00"
+      );
+      const status: "upcoming" | "past" = startDate >= now ? "upcoming" : "past";
 
-    const response = await calendar.events.list({
-      auth,
-      calendarId,
-      maxResults: 100,
-      singleEvents: true,
-      orderBy: "startTime",
-    });
-
-    const items = response.data.items || [];
-    
-    return items.map((item): Event => {
-      const dateTime = formatGoogleDate(item.start);
-      const desc = parseDescription(item.description);
-      
       return {
-        id: item.id || "",
-        slug: item.id?.toLowerCase().replace(/\W+/g, "-") || "",
+        id: item.id,
+        slug: slugify(item.summary || item.id),
         title: item.summary || "Untitled Event",
-        category: getCategory(item.summary || ""),
-        date: dateTime.date,
-        time: dateTime.time,
-        location: item.location || "TBD",
-        description: desc.description,
-        fullDescription: desc.fullDescription,
-        image: "", // We'll use a placeholder or allow configuration
-        status: getStatus(item.start),
+        category,
+        date: formatDate(startStr),
+        time: item.start.dateTime ? formatTime(item.start.dateTime) : undefined,
+        location: item.location || "To be announced",
+        description,
+        fullDescription,
+        image,
+        status,
       };
     });
-  } catch (error) {
-    console.error("Error fetching Google Calendar events:", error);
+  } catch {
     return [];
   }
 }
