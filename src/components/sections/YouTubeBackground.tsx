@@ -49,6 +49,29 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
       firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
     }
 
+    let interactionTimer: ReturnType<typeof setTimeout> | undefined;
+    let interacted = false;
+
+    function attemptPlay(player: { mute: () => void; playVideo: () => void }) {
+      try {
+        player.mute();
+        player.playVideo();
+      } catch {}
+    }
+
+    function onInteraction() {
+      if (interacted) return;
+      interacted = true;
+      document.removeEventListener("touchstart", onInteraction);
+      document.removeEventListener("click", onInteraction);
+      if (playerRef.current) {
+        attemptPlay(playerRef.current);
+      }
+    }
+
+    document.addEventListener("touchstart", onInteraction, { once: true });
+    document.addEventListener("click", onInteraction, { once: true });
+
     function createPlayer() {
       if (!containerRef.current) return;
       try {
@@ -78,10 +101,11 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
       } catch {}
     }
 
-    const onReady = (event: { target: { playVideo: () => void } }) => {
-      try {
-        event.target.playVideo();
-      } catch {}
+    const onReady = (event: { target: { mute: () => void; playVideo: () => void } }) => {
+      attemptPlay(event.target);
+      interactionTimer = setTimeout(() => {
+        if (!interacted) attemptPlay(event.target);
+      }, 1000);
     };
 
     const onError = () => {};
@@ -109,6 +133,9 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
     }
 
     return () => {
+      if (interactionTimer) clearTimeout(interactionTimer);
+      document.removeEventListener("touchstart", onInteraction);
+      document.removeEventListener("click", onInteraction);
       if (endTimeoutRef.current) clearInterval(endTimeoutRef.current);
       if (playerRef.current) {
         try { playerRef.current.destroy(); } catch {}
