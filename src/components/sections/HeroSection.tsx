@@ -8,11 +8,7 @@ export function HeroSection() {
       <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-gold/5 rounded-full blur-[120px]" />
       <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-gold/3 rounded-full blur-[100px]" />
 
-      <YouTubeBackground
-        videoId={process.env.NEXT_PUBLIC_YOUTUBE_HERO_VIDEO_ID || "N_hpOwSI2qU"}
-        startSeconds={process.env.NEXT_PUBLIC_YOUTUBE_HERO_START ? Number(process.env.NEXT_PUBLIC_YOUTUBE_HERO_START) : 2030}
-        endSeconds={process.env.NEXT_PUBLIC_YOUTUBE_HERO_END ? Number(process.env.NEXT_PUBLIC_YOUTUBE_HERO_END) : 2275}
-      />
+      <YouTubeBackground />
 
       <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/60 to-primary/40" />
       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-primary/20" />
