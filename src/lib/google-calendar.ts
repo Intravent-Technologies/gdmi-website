@@ -65,13 +65,22 @@ function parseDescription(raw: string | undefined): {
   }
 
   const fullDescription = bodyLines.join("\n").trim();
-  const plainText = fullDescription.replace(/<[^>]+>/g, "").replace(/\n{3,}/g, "\n\n").trim();
+  const hasHtml = /<[^>]+>/.test(fullDescription);
+  const fullDescriptionHtml = hasHtml
+    ? fullDescription
+    : fullDescription.replace(/\n/g, "<br>");
+
+  const plainText = fullDescriptionHtml
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   const description =
     plainText.length > 180
       ? plainText.slice(0, 177) + "..."
       : plainText;
 
-  return { category, image, description, fullDescription };
+  return { category, image, description, fullDescription: fullDescriptionHtml };
 }
 
 interface GCalEvent {

@@ -82,7 +82,7 @@ export default async function EventDetailPage({ params }: Props) {
             </div>
           )}
 
-          <div className="max-w-none text-muted-foreground leading-relaxed text-sm sm:text-base [&_a]:text-gold [&_a]:underline whitespace-pre-wrap"
+          <div className="max-w-none text-muted-foreground leading-relaxed text-sm sm:text-base [&_a]:text-gold [&_a]:underline"
             dangerouslySetInnerHTML={{ __html: event.fullDescription || event.description }}
           />
 
