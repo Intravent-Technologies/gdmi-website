@@ -17,6 +17,7 @@
     "@paystack/inline-js": "^2.22.2",
     "@sanity/client": "^6.29.1",
     "@sanity/image-url": "^2.1.1",
+    "@vercel/speed-insights": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
