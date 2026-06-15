@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 const images = [
@@ -23,6 +23,23 @@ export function AlbumStack() {
       setCurrent(0);
     }
   }, [open]);
+
+  const touchX = useRef(0);
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchX.current = e.touches[0].clientX;
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    const diff = touchX.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        setCurrent((p) => (p === images.length - 1 ? 0 : p + 1));
+      } else {
+        setCurrent((p) => (p === 0 ? images.length - 1 : p - 1));
+      }
+    }
+  }
 
   function close() {
     setMounted(false);
@@ -111,6 +128,8 @@ export function AlbumStack() {
           <div
             className="flex sm:hidden flex-col items-center gap-4 w-full px-6"
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >
             <div className="relative w-full max-w-[300px] transition-all duration-700 ease-out"
               style={{
