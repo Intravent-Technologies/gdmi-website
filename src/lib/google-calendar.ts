@@ -3,6 +3,16 @@ import type { Event } from "@/data/events";
 const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
 const API_KEY = process.env.GOOGLE_CALENDAR_API_KEY;
 
+function stripHtml(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/?[^>]+(>|$)/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -47,7 +57,8 @@ function parseDescription(raw: string | undefined): {
     return { category: "Event", image: "", description: "", fullDescription: "" };
   }
 
-  const lines = raw.replace(/\r\n/g, "\n").split("\n");
+  const stripped = stripHtml(raw);
+  const lines = stripped.replace(/\r\n/g, "\n").split("\n");
   let category = "Event";
   let image = "";
   const bodyLines: string[] = [];
