@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 interface YouTubeBackgroundProps {
   videoId: string;
@@ -33,7 +33,9 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<any>(null);
   const endTimeoutRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
-  const [origin] = useState(() => typeof window !== "undefined" ? window.location.origin : "");
+
+  // mute=1 is the correct YouTube embed URL param (not muted=1 which is an HTML5 video attribute)
+  const src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0&enablejsapi=1&start=${startSeconds}${endSeconds ? `&end=${endSeconds}` : ""}`;
 
   useEffect(() => {
     if (!apiLoaded) {
@@ -72,7 +74,12 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
     if (window.YT && window.YT.Player) {
       bindPlayer();
     } else {
-      window.onYouTubeIframeAPIReady = bindPlayer;
+      // Chain handlers so multiple instances don't overwrite each other
+      const prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        prev?.();
+        bindPlayer();
+      };
     }
 
     return () => {
@@ -91,7 +98,7 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
       >
         <iframe
           ref={iframeRef}
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&muted=1&playsinline=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0&enablejsapi=1&origin=${origin}&start=${startSeconds}${endSeconds ? `&end=${endSeconds}` : ""}`}
+          src={src}
           allow="autoplay; encrypted-media; fullscreen"
           className="w-full h-full"
           title="Hero Video"
