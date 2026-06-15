@@ -82,11 +82,9 @@ export default async function EventDetailPage({ params }: Props) {
             </div>
           )}
 
-          <div className="max-w-none">
-            <p className="text-muted-foreground leading-relaxed text-sm sm:text-base whitespace-pre-line">
-              {event.fullDescription || event.description}
-            </p>
-          </div>
+          <div className="max-w-none text-muted-foreground leading-relaxed text-sm sm:text-base [&_a]:text-gold [&_a]:underline [&_br]:block [&_br]:content-['']"
+            dangerouslySetInnerHTML={{ __html: event.fullDescription || event.description }}
+          />
 
           {event.schedule && event.schedule.length > 0 && (
             <div className="mt-12">
