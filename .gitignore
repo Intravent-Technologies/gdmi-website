@@ -41,3 +41,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# duplicate source copy
+/gdmi-website/
+
+# studio node_modules
+/studio/node_modules/

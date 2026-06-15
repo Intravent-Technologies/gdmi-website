@@ -11,7 +11,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
     <div className="group rounded-2xl overflow-hidden bg-card border border-border shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_10px_25px_-8px_rgba(15,29,53,0.1)] hover:-translate-y-0.5 transition-all duration-300">
       <div className="aspect-[16/10] overflow-hidden">
         <img
-          src={project.image}
+          src={project.image || "/gdmi-logo.png"}
           alt={project.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
         />

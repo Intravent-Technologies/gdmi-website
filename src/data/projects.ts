@@ -27,7 +27,7 @@ export const projects: Project[] = [
     gallery: [
       "/images/projects/widows-empowerment.jpg",
     ],
-    videoUrl: "https://youtube.com/@gdmichannel",
+    videoUrl: "https://www.youtube.com/watch?v=AQiyBY7uv8s",
     goal: 20000000,
     raised: 12400000,
     partners: 1240,

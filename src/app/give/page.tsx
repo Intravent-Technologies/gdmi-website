@@ -27,7 +27,16 @@ const testimonies = [
 
 export default async function GivePage() {
   const wpProjects = await getProjects();
-  const projects = wpProjects.length > 0 ? wpProjects : staticProjects;
+  const projects = wpProjects.length > 0
+    ? wpProjects.map((wp) => {
+        const st = staticProjects.find((s) => s.slug === wp.slug);
+        return {
+          ...wp,
+          image: wp.image || st?.image || "/gdmi-logo.png",
+          gallery: wp.gallery.length > 0 ? wp.gallery : st?.gallery || [],
+        };
+      })
+    : staticProjects;
   return (
     <>
       <section className="bg-primary pt-32 pb-20 px-4 sm:px-6 relative overflow-hidden border-b border-border/20">

@@ -15,7 +15,7 @@ export function SermonSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="relative aspect-video rounded-2xl overflow-hidden bg-muted border border-border group shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
             <img
-              src={latestSermon.thumbnail}
+              src={latestSermon.thumbnail || "/gdmi-logo.png"}
               alt={latestSermon.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             />
@@ -49,7 +49,7 @@ export function SermonSection() {
                 Watch Now
               </Link>
               <Link
-                href={process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://youtube.com/@gdmichannel"}
+                href={process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://youtube.com/@TheSetApartChurch"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 border border-border text-muted-foreground px-6 py-3 rounded-xl font-semibold text-sm hover:bg-muted hover:text-primary transition-all"

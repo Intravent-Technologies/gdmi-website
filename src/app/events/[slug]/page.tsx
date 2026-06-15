@@ -114,7 +114,7 @@ export default async function EventDetailPage({ params }: Props) {
               <p className="text-primary font-semibold text-sm mb-2">Want to attend this event?</p>
               <p className="text-muted-foreground text-xs mb-6">Register your interest and we&apos;ll keep you updated.</p>
               <Link
-                href={process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://youtube.com/@gdmichannel"}
+                href={process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://youtube.com/@TheSetApartChurch"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block bg-primary text-primary-foreground px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-navy-light transition-all shadow-[0_1px_3px_rgba(15,29,53,0.15)]"

@@ -41,7 +41,7 @@ export function HeroSection() {
 
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up">
           <Link
-            href={process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://youtube.com/@gdmichannel"}
+            href={process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://youtube.com/@TheSetApartChurch"}
             target="_blank"
             rel="noopener noreferrer"
             className="group relative bg-gold text-primary px-8 py-3.5 rounded-xl font-bold text-sm overflow-hidden transition-all duration-200 hover:bg-gold-light shadow-[0_4px_15px_-5px_rgba(201,168,76,0.3)]"

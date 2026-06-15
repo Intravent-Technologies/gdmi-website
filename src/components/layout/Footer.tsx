@@ -52,7 +52,7 @@ export function Footer() {
             </h4>
             <div className="flex gap-3 mb-5">
               <a
-                href={process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://youtube.com/@gdmichannel"}
+                href={process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://youtube.com/@TheSetApartChurch"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-background flex items-center justify-center hover:bg-primary text-muted-foreground hover:text-white border border-border hover:border-primary transition-all shadow-[0_1px_3px_rgba(0,0,0,0.04)]"

@@ -14,11 +14,22 @@ import { Building2, CheckCircle2, Copy } from "lucide-react";
 import { projects as staticProjects } from "@/data/projects";
 import { useProjects } from "@/lib/use-data";
 
-const presetAmounts = [1000, 5000, 10000, 50000];
+const nairaPresets = [1000, 5000, 10000, 50000];
+const dollarPresets = [10, 50, 100, 500];
 
 export function DonationForm() {
   const { data: wpProjects } = useProjects();
-  const projects = wpProjects.length > 0 ? wpProjects : staticProjects;
+  const projects = wpProjects.length > 0
+    ? wpProjects.map((wp) => {
+        const st = staticProjects.find((s) => s.slug === wp.slug);
+        return {
+          ...wp,
+          image: wp.image || st?.image || "/gdmi-logo.png",
+          gallery: wp.gallery.length > 0 ? wp.gallery : st?.gallery || [],
+        };
+      })
+    : staticProjects;
+  const [currency, setCurrency] = useState<"NGN" | "USD">("NGN");
   const [amount, setAmount] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState("");
   const [name, setName] = useState("");
@@ -26,7 +37,10 @@ export function DonationForm() {
   const [phone, setPhone] = useState("");
   const [project, setProject] = useState("general");
   const [submitted, setSubmitted] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const symbol = currency === "NGN" ? "₦" : "$";
+  const presetAmounts = currency === "NGN" ? nairaPresets : dollarPresets;
 
   function handlePresetClick(value: number) {
     setAmount(value);
@@ -40,18 +54,19 @@ export function DonationForm() {
     setCustomAmount(value);
   }
 
-  async function handleCopy(text: string) {
+  async function handleCopy(text: string, label: string) {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopied(label);
+      setTimeout(() => setCopied(null), 2000);
     } catch {}
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (amount < 100) {
-      alert("Minimum donation is ₦100");
+    const min = currency === "NGN" ? 100 : 1;
+    if (amount < min) {
+      alert(`Minimum donation is ${symbol}${min}`);
       return;
     }
     if (!email) {
@@ -70,10 +85,10 @@ export function DonationForm() {
           </div>
           <h3 className="text-2xl font-bold text-primary">Thank You!</h3>
           <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-            Your pledge of <span className="font-semibold text-primary">₦{amount.toLocaleString()}</span> for <span className="font-semibold">{project === "general" ? "General Ministry" : project}</span> has been noted.
+            Your pledge of <span className="font-semibold text-primary">{symbol}{amount.toLocaleString()}</span> for <span className="font-semibold">{project === "general" ? "General Ministry" : project}</span> has been noted.
           </p>
           <p className="text-muted-foreground text-xs max-w-sm mx-auto">
-            Kindly transfer the amount to the bank account below and send your proof of payment to us via WhatsApp or email.
+            Kindly transfer the amount to the account below and send your proof of payment to us via WhatsApp or email.
           </p>
           <Button
             variant="outline"
@@ -98,13 +113,38 @@ export function DonationForm() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 space-y-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="flex rounded-xl bg-muted p-1 border border-border">
+          <button
+            type="button"
+            onClick={() => setCurrency("NGN")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              currency === "NGN"
+                ? "bg-background text-primary shadow-sm"
+                : "text-muted-foreground hover:text-primary"
+            }`}
+          >
+            ₦ Naira
+          </button>
+          <button
+            type="button"
+            onClick={() => setCurrency("USD")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              currency === "USD"
+                ? "bg-background text-primary shadow-sm"
+                : "text-muted-foreground hover:text-primary"
+            }`}
+          >
+            $ Dollar
+          </button>
+        </div>
+
         <div className="text-center">
           <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4 border border-border">
             <Building2 className="size-8 text-muted-foreground" />
           </div>
           <h3 className="text-2xl font-bold text-primary">Bank Transfer</h3>
           <p className="text-muted-foreground mt-2 text-sm">
-            Make a direct bank transfer to the ministry account below.
+            Make a direct bank transfer to the ministry {currency === "NGN" ? "Naira" : "Dollar"} account below.
           </p>
         </div>
 
@@ -118,18 +158,27 @@ export function DonationForm() {
           <div className="flex justify-between items-center py-2 border-b border-border">
             <span className="text-muted-foreground text-sm">Bank</span>
             <span className="font-semibold text-primary/60 text-sm">
-              {process.env.NEXT_PUBLIC_BANK_NAME}
+              {currency === "NGN"
+                ? process.env.NEXT_PUBLIC_BANK_NAME
+                : process.env.NEXT_PUBLIC_DOLLAR_BANK_NAME}
             </span>
           </div>
           <div className="flex justify-between items-center py-2">
             <span className="text-muted-foreground text-sm">Account No</span>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-gold text-lg tracking-wider">
-                {process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER}
+                {currency === "NGN"
+                  ? process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER
+                  : process.env.NEXT_PUBLIC_DOLLAR_ACCOUNT_NUMBER}
               </span>
               <button
                 type="button"
-                onClick={() => handleCopy(process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER || "")}
+                onClick={() => handleCopy(
+                  currency === "NGN"
+                    ? process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER || ""
+                    : process.env.NEXT_PUBLIC_DOLLAR_ACCOUNT_NUMBER || "",
+                  currency
+                )}
                 className="p-1.5 rounded-lg hover:bg-muted transition-colors"
                 title="Copy account number"
               >
@@ -137,14 +186,10 @@ export function DonationForm() {
               </button>
             </div>
           </div>
-          {copied && (
+          {copied === currency && (
             <p className="text-xs text-green-600 text-center">Account number copied!</p>
           )}
         </div>
-
-        <p className="text-xs text-muted-foreground/50 text-center -mt-4">
-          Dollar account details coming soon.
-        </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -163,7 +208,7 @@ export function DonationForm() {
                       : "bg-transparent text-muted-foreground border-border hover:border-primary/30 hover:text-primary"
                   }`}
                 >
-                  ₦{preset.toLocaleString()}
+                  {symbol}{preset.toLocaleString()}
                 </button>
               ))}
               <input

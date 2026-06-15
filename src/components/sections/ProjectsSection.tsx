@@ -8,7 +8,16 @@ import { useProjects } from "@/lib/use-data";
 
 export function ProjectsSection() {
   const { data: wpProjects } = useProjects();
-  const projects = wpProjects.length > 0 ? wpProjects : staticProjects;
+  const projects = wpProjects.length > 0
+    ? wpProjects.map((wp) => {
+        const st = staticProjects.find((s) => s.slug === wp.slug);
+        return {
+          ...wp,
+          image: wp.image || st?.image || "/gdmi-logo.png",
+          gallery: wp.gallery.length > 0 ? wp.gallery : st?.gallery || [],
+        };
+      })
+    : staticProjects;
   return (
     <section className="py-20 sm:py-24 bg-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

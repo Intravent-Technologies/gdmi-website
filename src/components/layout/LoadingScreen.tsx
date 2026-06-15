@@ -20,8 +20,8 @@ export function LoadingScreen() {
       setVisible(false);
       return;
     }
-    const fadeTimer = setTimeout(() => setFadeOut(true), 5000);
-    const hideTimer = setTimeout(() => setVisible(false), 5700);
+    const fadeTimer = setTimeout(() => setFadeOut(true), 1500);
+    const hideTimer = setTimeout(() => setVisible(false), 2200);
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(hideTimer);
@@ -41,8 +41,8 @@ export function LoadingScreen() {
     setFadeOut(false);
     setVisible(true);
 
-    const fadeTimer = setTimeout(() => setFadeOut(true), 1200);
-    const hideTimer = setTimeout(() => setVisible(false), 1900);
+    const fadeTimer = setTimeout(() => setFadeOut(true), 400);
+    const hideTimer = setTimeout(() => setVisible(false), 1100);
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(hideTimer);
