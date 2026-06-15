@@ -15,18 +15,23 @@ declare global {
         element: HTMLElement,
         options: {
           videoId: string;
+          height?: string | number;
+          width?: string | number;
           playerVars?: Record<string, string | number | boolean>;
           events?: {
             onReady?: (event: { target: { playVideo: () => void } }) => void;
             onStateChange?: (event: { data: number; target: { getCurrentTime: () => number; seekTo: (time: number) => void; playVideo: () => void } }) => void;
+            onError?: (event: { data: number }) => void;
           };
         }
       ) => void;
-      PlayerState: { PLAYING: number };
+      PlayerState: { PLAYING: number; BUFFERING: number };
     };
     onYouTubeIframeAPIReady?: () => void;
   }
 }
+
+let apiScriptAdded = false;
 
 export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: YouTubeBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -36,61 +41,77 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName("script")[0];
-    firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+    if (!apiScriptAdded) {
+      apiScriptAdded = true;
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName("script")[0];
+      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+    }
+
+    function createPlayer() {
+      if (!containerRef.current) return;
+      try {
+        playerRef.current = new window.YT.Player(containerRef.current, {
+          videoId,
+          height: "100%",
+          width: "100%",
+          playerVars: {
+            autoplay: 1,
+            mute: 1,
+            loop: 1,
+            controls: 0,
+            showinfo: 0,
+            rel: 0,
+            modestbranding: 1,
+            playsinline: 1,
+            disablekb: 1,
+            fs: 0,
+            iv_load_policy: 3,
+            playlist: videoId,
+            start: startSeconds,
+            origin: window.location.origin,
+            ...(endSeconds ? { end: endSeconds } : {}),
+          },
+          events: { onReady, onStateChange, onError },
+        });
+      } catch {}
+    }
 
     const onReady = (event: { target: { playVideo: () => void } }) => {
-      event.target.playVideo();
+      try {
+        event.target.playVideo();
+      } catch {}
     };
+
+    const onError = () => {};
 
     const onStateChange = (event: { data: number; target: { getCurrentTime: () => number; seekTo: (time: number) => void; playVideo: () => void } }) => {
       if (!endSeconds) return;
       if (event.data === window.YT.PlayerState.PLAYING) {
         endTimeoutRef.current = setInterval(() => {
-          const currentTime = event.target.getCurrentTime();
-          if (currentTime >= endSeconds) {
-            event.target.seekTo(startSeconds);
-          }
+          try {
+            const currentTime = event.target.getCurrentTime();
+            if (currentTime >= endSeconds) {
+              event.target.seekTo(startSeconds);
+            }
+          } catch {}
         }, 250);
       } else {
         if (endTimeoutRef.current) clearInterval(endTimeoutRef.current);
       }
     };
 
-    window.YT && window.YT.Player
-      ? createPlayer()
-      : (window.onYouTubeIframeAPIReady = createPlayer);
-
-    function createPlayer() {
-      if (!containerRef.current) return;
-      playerRef.current = new window.YT.Player(containerRef.current, {
-        videoId,
-        playerVars: {
-          autoplay: 1,
-          mute: 1,
-          loop: 1,
-          controls: 0,
-          showinfo: 0,
-          rel: 0,
-          modestbranding: 1,
-          playsinline: 1,
-          disablekb: 1,
-          fs: 0,
-          iv_load_policy: 3,
-          playlist: videoId,
-          start: startSeconds,
-          ...(endSeconds ? { end: endSeconds } : {}),
-        },
-        events: { onReady, onStateChange },
-      });
+    if (window.YT && window.YT.Player) {
+      createPlayer();
+    } else {
+      window.onYouTubeIframeAPIReady = createPlayer;
     }
 
     return () => {
       if (endTimeoutRef.current) clearInterval(endTimeoutRef.current);
       if (playerRef.current) {
-        playerRef.current.destroy();
+        try { playerRef.current.destroy(); } catch {}
       }
     };
   }, [videoId, startSeconds, endSeconds]);
