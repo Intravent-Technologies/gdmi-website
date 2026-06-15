@@ -19,9 +19,9 @@ declare global {
           width?: string | number;
           playerVars?: Record<string, string | number | boolean>;
           events?: {
-            onReady?: (event: { target: { playVideo: () => void } }) => void;
-            onStateChange?: (event: { data: number; target: { getCurrentTime: () => number; seekTo: (time: number) => void; playVideo: () => void } }) => void;
-            onError?: (event: { data: number }) => void;
+            onReady?: (event: { target: { mute: () => void; playVideo: () => void } }) => void;
+            onStateChange?: (event: { data: number; target: { getCurrentTime: () => number; seekTo: (t: number, a: boolean) => void } }) => void;
+            onError?: () => void;
           };
         }
       ) => void;
@@ -31,7 +31,7 @@ declare global {
   }
 }
 
-let apiScriptAdded = false;
+let apiLoaded = false;
 
 export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: YouTubeBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -41,40 +41,30 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
   useEffect(() => {
     if (!containerRef.current) return;
 
-    if (!apiScriptAdded) {
-      apiScriptAdded = true;
+    if (!apiLoaded) {
+      apiLoaded = true;
       const tag = document.createElement("script");
       tag.src = "https://www.youtube.com/iframe_api";
       const firstScriptTag = document.getElementsByTagName("script")[0];
       firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
     }
 
-    let interactionTimer: ReturnType<typeof setTimeout> | undefined;
-    let interacted = false;
-
-    function attemptPlay(player: { mute: () => void; playVideo: () => void }) {
-      try {
-        player.mute();
-        player.playVideo();
-      } catch {}
-    }
-
-    function onInteraction() {
-      if (interacted) return;
-      interacted = true;
-      document.removeEventListener("touchstart", onInteraction);
-      document.removeEventListener("click", onInteraction);
-      if (playerRef.current) {
-        attemptPlay(playerRef.current);
+    function setAllowOnIframe() {
+      const iframe = containerRef.current?.querySelector("iframe");
+      if (iframe && !iframe.hasAttribute("allow")) {
+        iframe.setAttribute("allow", "autoplay; encrypted-media; fullscreen");
       }
     }
-
-    document.addEventListener("touchstart", onInteraction, { once: true });
-    document.addEventListener("click", onInteraction, { once: true });
 
     function createPlayer() {
       if (!containerRef.current) return;
       try {
+        const mo = new MutationObserver(() => {
+          setAllowOnIframe();
+          mo.disconnect();
+        });
+        mo.observe(containerRef.current, { childList: true, subtree: true });
+
         playerRef.current = new window.YT.Player(containerRef.current, {
           videoId,
           height: "100%",
@@ -102,22 +92,23 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
     }
 
     const onReady = (event: { target: { mute: () => void; playVideo: () => void } }) => {
-      attemptPlay(event.target);
-      interactionTimer = setTimeout(() => {
-        if (!interacted) attemptPlay(event.target);
-      }, 1000);
+      setAllowOnIframe();
+      try {
+        event.target.mute();
+        event.target.playVideo();
+      } catch {}
     };
 
     const onError = () => {};
 
-    const onStateChange = (event: { data: number; target: { getCurrentTime: () => number; seekTo: (time: number) => void; playVideo: () => void } }) => {
+    const onStateChange = (event: { data: number; target: { getCurrentTime: () => number; seekTo: (t: number, a: boolean) => void } }) => {
       if (!endSeconds) return;
       if (event.data === window.YT.PlayerState.PLAYING) {
         endTimeoutRef.current = setInterval(() => {
           try {
             const currentTime = event.target.getCurrentTime();
             if (currentTime >= endSeconds) {
-              event.target.seekTo(startSeconds);
+              event.target.seekTo(startSeconds, true);
             }
           } catch {}
         }, 250);
@@ -133,9 +124,6 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
     }
 
     return () => {
-      if (interactionTimer) clearTimeout(interactionTimer);
-      document.removeEventListener("touchstart", onInteraction);
-      document.removeEventListener("click", onInteraction);
       if (endTimeoutRef.current) clearInterval(endTimeoutRef.current);
       if (playerRef.current) {
         try { playerRef.current.destroy(); } catch {}
