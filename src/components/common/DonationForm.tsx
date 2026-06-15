@@ -159,8 +159,8 @@ export function DonationForm() {
             <span className="text-muted-foreground text-sm">Bank</span>
             <span className="font-semibold text-primary/60 text-sm">
               {currency === "NGN"
-                ? process.env.NEXT_PUBLIC_BANK_NAME
-                : process.env.NEXT_PUBLIC_DOLLAR_BANK_NAME}
+                ? (process.env.NEXT_PUBLIC_BANK_NAME || "Globus Bank")
+                : (process.env.NEXT_PUBLIC_DOLLAR_BANK_NAME || "Globus Bank")}
             </span>
           </div>
           <div className="flex justify-between items-center py-2">
@@ -168,15 +168,15 @@ export function DonationForm() {
             <div className="flex items-center gap-2">
               <span className="font-semibold text-gold text-lg tracking-wider">
                 {currency === "NGN"
-                  ? process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER
-                  : process.env.NEXT_PUBLIC_DOLLAR_ACCOUNT_NUMBER}
+                  ? (process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER || "1000182448")
+                  : (process.env.NEXT_PUBLIC_DOLLAR_ACCOUNT_NUMBER || "1000320242")}
               </span>
               <button
                 type="button"
                 onClick={() => handleCopy(
                   currency === "NGN"
-                    ? process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER || ""
-                    : process.env.NEXT_PUBLIC_DOLLAR_ACCOUNT_NUMBER || "",
+                    ? (process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER || "1000182448")
+                    : (process.env.NEXT_PUBLIC_DOLLAR_ACCOUNT_NUMBER || "1000320242"),
                   currency
                 )}
                 className="p-1.5 rounded-lg hover:bg-muted transition-colors"
