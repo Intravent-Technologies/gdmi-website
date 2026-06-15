@@ -44,14 +44,18 @@ export function VideoPopup() {
     <>
       <div ref={ref} className="pointer-events-none absolute top-0" />
       {open && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-xs bg-background rounded-2xl overflow-hidden shadow-2xl">
+        <>
+          <div
+            className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none"
+            onClick={() => setOpen(false)}
+          />
+          <div className="fixed z-[91] inset-x-4 bottom-4 md:inset-x-auto md:bottom-6 md:right-6 md:w-64 bg-background rounded-2xl overflow-hidden shadow-2xl">
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="absolute top-3 right-3 z-10 size-8 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+              className="absolute top-2 right-2 z-10 size-7 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
             >
-              <X className="size-4" />
+              <X className="size-3.5" />
             </button>
             <div className="aspect-[9/16] w-full bg-black">
               <video
@@ -65,18 +69,18 @@ export function VideoPopup() {
                 title="PG Video"
               />
             </div>
-            <div className="flex items-center justify-center py-3 px-4 bg-background">
+            <div className="flex items-center justify-center py-2 px-3 bg-background">
               <button
                 type="button"
                 onClick={toggleMute}
-                className="size-9 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-primary transition-colors"
+                className="size-8 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-primary transition-colors"
                 title={muted ? "Unmute" : "Mute"}
               >
-                {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
+                {muted ? <VolumeX className="size-3.5" /> : <Volume2 className="size-3.5" />}
               </button>
             </div>
           </div>
-        </div>
+        </>
       )}
     </>
   );
