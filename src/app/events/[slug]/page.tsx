@@ -87,14 +87,20 @@ export default async function EventDetailPage({ params }: Props) {
           />
 
           {event.attachments && event.attachments.length > 0 && (
-            <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {event.attachments.map((a, i) => (
-                <a key={i} href={a.fileUrl} target="_blank" rel="noopener noreferrer"
-                  className="block rounded-xl overflow-hidden border border-border hover:border-gold/30 transition-colors"
-                >
-                  <img src={a.fileUrl} alt={a.title} className="w-full h-auto object-cover" />
-                </a>
-              ))}
+            <div className="mt-10 space-y-6">
+              {event.attachments.map((a, i) => {
+                const directUrl = a.fileUrl.replace(
+                  /^https:\/\/drive\.google\.com\/file\/d\/([^/]+)\/.*$/,
+                  "https://drive.google.com/uc?export=view&id=$1"
+                );
+                return (
+                  <div key={i} className="rounded-xl overflow-hidden border border-border">
+                    <a href={a.fileUrl} target="_blank" rel="noopener noreferrer">
+                      <img src={directUrl} alt={a.title} className="w-full h-auto" />
+                    </a>
+                  </div>
+                );
+              })}
             </div>
           )}
 
