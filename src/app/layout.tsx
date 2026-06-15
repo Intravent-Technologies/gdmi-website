@@ -4,7 +4,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { LoadingScreen } from "@/components/layout/LoadingScreen";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const inter = Inter({
@@ -45,7 +44,6 @@ export default function RootLayout({
         <main className="flex-1">{children}</main>
         <Footer />
         <Toaster />
-        <SpeedInsights />
       </body>
     </html>
   );
