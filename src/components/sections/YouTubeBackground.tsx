@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface YouTubeBackgroundProps {
   videoId: string;
@@ -12,20 +12,16 @@ declare global {
   interface Window {
     YT: {
       Player: new (
-        element: HTMLElement,
+        element: HTMLElement | HTMLIFrameElement,
         options: {
-          videoId: string;
-          height?: string | number;
-          width?: string | number;
-          playerVars?: Record<string, string | number | boolean>;
           events?: {
-            onReady?: (event: { target: { mute: () => void; playVideo: () => void } }) => void;
+            onReady?: () => void;
             onStateChange?: (event: { data: number; target: { getCurrentTime: () => number; seekTo: (t: number, a: boolean) => void } }) => void;
             onError?: () => void;
           };
         }
       ) => void;
-      PlayerState: { PLAYING: number; BUFFERING: number };
+      PlayerState: { PLAYING: number };
     };
     onYouTubeIframeAPIReady?: () => void;
   }
@@ -34,74 +30,21 @@ declare global {
 let apiLoaded = false;
 
 export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: YouTubeBackgroundProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<any>(null);
   const endTimeoutRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const [origin] = useState(() => typeof window !== "undefined" ? window.location.origin : "");
 
   useEffect(() => {
-    if (!containerRef.current) return;
-
     if (!apiLoaded) {
       apiLoaded = true;
       const tag = document.createElement("script");
       tag.src = "https://www.youtube.com/iframe_api";
-      const firstScriptTag = document.getElementsByTagName("script")[0];
-      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+      const firstScript = document.getElementsByTagName("script")[0];
+      firstScript?.parentNode?.insertBefore(tag, firstScript);
     }
 
-    function setAllowOnIframe() {
-      const iframe = containerRef.current?.querySelector("iframe");
-      if (iframe && !iframe.hasAttribute("allow")) {
-        iframe.setAttribute("allow", "autoplay; encrypted-media; fullscreen");
-      }
-    }
-
-    function createPlayer() {
-      if (!containerRef.current) return;
-      try {
-        const mo = new MutationObserver(() => {
-          setAllowOnIframe();
-          mo.disconnect();
-        });
-        mo.observe(containerRef.current, { childList: true, subtree: true });
-
-        playerRef.current = new window.YT.Player(containerRef.current, {
-          videoId,
-          height: "100%",
-          width: "100%",
-          playerVars: {
-            autoplay: 1,
-            mute: 1,
-            loop: 1,
-            controls: 0,
-            showinfo: 0,
-            rel: 0,
-            modestbranding: 1,
-            playsinline: 1,
-            disablekb: 1,
-            fs: 0,
-            iv_load_policy: 3,
-            playlist: videoId,
-            start: startSeconds,
-            origin: window.location.origin,
-            ...(endSeconds ? { end: endSeconds } : {}),
-          },
-          events: { onReady, onStateChange, onError },
-        });
-      } catch {}
-    }
-
-    const onReady = (event: { target: { mute: () => void; playVideo: () => void } }) => {
-      setAllowOnIframe();
-      try {
-        event.target.mute();
-        event.target.playVideo();
-      } catch {}
-    };
-
-    const onError = () => {};
-
-    const onStateChange = (event: { data: number; target: { getCurrentTime: () => number; seekTo: (t: number, a: boolean) => void } }) => {
+    function onStateChange(event: { data: number; target: { getCurrentTime: () => number; seekTo: (t: number, a: boolean) => void } }) {
       if (!endSeconds) return;
       if (event.data === window.YT.PlayerState.PLAYING) {
         endTimeoutRef.current = setInterval(() => {
@@ -115,12 +58,21 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
       } else {
         if (endTimeoutRef.current) clearInterval(endTimeoutRef.current);
       }
-    };
+    }
+
+    function bindPlayer() {
+      if (!iframeRef.current) return;
+      try {
+        playerRef.current = new window.YT.Player(iframeRef.current, {
+          events: { onReady: () => {}, onStateChange, onError: () => {} },
+        });
+      } catch {}
+    }
 
     if (window.YT && window.YT.Player) {
-      createPlayer();
+      bindPlayer();
     } else {
-      window.onYouTubeIframeAPIReady = createPlayer;
+      window.onYouTubeIframeAPIReady = bindPlayer;
     }
 
     return () => {
@@ -129,7 +81,7 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
         try { playerRef.current.destroy(); } catch {}
       }
     };
-  }, [videoId, startSeconds, endSeconds]);
+  }, [endSeconds, startSeconds]);
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -137,7 +89,13 @@ export function YouTubeBackground({ videoId, startSeconds = 0, endSeconds }: You
         className="absolute top-1/2 left-1/2 w-[200%] h-[200%] -translate-x-1/2 -translate-y-1/2"
         style={{ filter: "brightness(0.35) saturate(1.1)" }}
       >
-        <div ref={containerRef} className="w-full h-full" />
+        <iframe
+          ref={iframeRef}
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&muted=1&playsinline=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0&enablejsapi=1&origin=${origin}&start=${startSeconds}${endSeconds ? `&end=${endSeconds}` : ""}`}
+          allow="autoplay; encrypted-media; fullscreen"
+          className="w-full h-full"
+          title="Hero Video"
+        />
       </div>
     </div>
   );
