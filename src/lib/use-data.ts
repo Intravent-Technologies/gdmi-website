@@ -11,7 +11,7 @@ export function useEvents() {
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch("/api/google-calendar");
+        const res = await fetch("/api/google-calendar", { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
         if (!cancelled) setData(Array.isArray(json) ? json : (json.data ?? []));

@@ -1,6 +1,6 @@
 import { getGoogleCalendarEvents } from "@/lib/google-calendar";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const events = await getGoogleCalendarEvents();

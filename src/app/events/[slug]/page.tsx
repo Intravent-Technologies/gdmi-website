@@ -5,7 +5,7 @@ import { events as staticEvents } from "@/data/events";
 import { getGoogleCalendarEvents } from "@/lib/google-calendar";
 import { Calendar, MapPin, Clock, ArrowLeft } from "lucide-react";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ slug: string }>;
