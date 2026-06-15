@@ -1,3 +1,10 @@
+export interface Attachment {
+  fileUrl: string;
+  title: string;
+  mimeType: string;
+  iconLink: string;
+}
+
 export interface Event {
   id: string;
   slug: string;
@@ -9,6 +16,7 @@ export interface Event {
   description: string;
   fullDescription?: string;
   image: string;
+  attachments?: Attachment[];
   schedule?: { time: string; activity: string }[];
   status: "upcoming" | "past";
 }

@@ -83,11 +83,19 @@ function parseDescription(raw: string | undefined): {
   return { category, image, description, fullDescription: fullDescriptionHtml };
 }
 
+interface GCalAttachment {
+  fileUrl: string;
+  title: string;
+  mimeType: string;
+  iconLink: string;
+}
+
 interface GCalEvent {
   id: string;
   summary?: string;
   description?: string;
   location?: string;
+  attachments?: GCalAttachment[];
   start: { dateTime?: string; date?: string };
   end: { dateTime?: string; date?: string };
 }
@@ -135,6 +143,9 @@ export async function getGoogleCalendarEvents(): Promise<Event[]> {
         description,
         fullDescription,
         image,
+        attachments: item.attachments?.filter((a) =>
+          a.mimeType.startsWith("image/")
+        ),
         status,
       };
     });

@@ -86,6 +86,18 @@ export default async function EventDetailPage({ params }: Props) {
             dangerouslySetInnerHTML={{ __html: event.fullDescription || event.description }}
           />
 
+          {event.attachments && event.attachments.length > 0 && (
+            <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {event.attachments.map((a, i) => (
+                <a key={i} href={a.fileUrl} target="_blank" rel="noopener noreferrer"
+                  className="block rounded-xl overflow-hidden border border-border hover:border-gold/30 transition-colors"
+                >
+                  <img src={a.fileUrl} alt={a.title} className="w-full h-auto object-cover" />
+                </a>
+              ))}
+            </div>
+          )}
+
           {event.schedule && event.schedule.length > 0 && (
             <div className="mt-12">
               <h2 className="text-2xl font-bold text-primary mb-5">Event Schedule</h2>
