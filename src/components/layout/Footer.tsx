@@ -1,12 +1,18 @@
 import Link from "next/link";
 import { Play, Send, Camera } from "lucide-react";
 
-const footerLinks = [
+const exploreLinks = [
   { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
+  { href: "/ministries", label: "Our Ministries" },
   { href: "/events", label: "Events" },
-  { href: "/give", label: "Give" },
+  { href: "/gallery", label: "Gallery" },
+];
+
+const engageLinks = [
   { href: "/media", label: "Media" },
+  { href: "/books", label: "Books" },
+  { href: "/join", label: "Partner / Volunteer" },
+  { href: "/give", label: "Give" },
 ];
 
 export function Footer() {
@@ -28,22 +34,37 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="md:col-span-3">
-            <h4 className="text-primary font-semibold text-sm mb-5">
-              Quick Links
-            </h4>
-            <ul className="space-y-3">
-              {footerLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          <div className="md:col-span-3 flex gap-8">
+            <div>
+              <h4 className="text-primary font-semibold text-sm mb-5">Explore</h4>
+              <ul className="space-y-3">
+                {exploreLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-primary font-semibold text-sm mb-5">Engage</h4>
+              <ul className="space-y-3">
+                {engageLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           <div className="md:col-span-4">

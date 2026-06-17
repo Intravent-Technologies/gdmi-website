@@ -4,6 +4,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { LoadingScreen } from "@/components/layout/LoadingScreen";
+import { VideoPopup } from "@/components/common/VideoPopup";
+import { GlobalCTA } from "@/components/common/GlobalCTA";
 import "./globals.css";
 
 const inter = Inter({
@@ -42,7 +44,9 @@ export default function RootLayout({
         <LoadingScreen />
         <Navbar />
         <main className="flex-1">{children}</main>
+        <GlobalCTA />
         <Footer />
+        <VideoPopup />
         <Toaster />
       </body>
     </html>
