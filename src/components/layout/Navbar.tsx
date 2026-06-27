@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Menu, X, ChevronDown, ChevronRight, Info, Flame, MapPin, GraduationCap, Heart, Play, Image as ImageIcon, Cross } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight, Info, Flame, MapPin, GraduationCap, Heart, Play, Image as ImageIcon, Cross, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const dropdownIconMap: Record<string, React.ReactNode> = {
@@ -14,6 +14,7 @@ const dropdownIconMap: Record<string, React.ReactNode> = {
   impact: <Cross className="size-3.5" />,
   prayers: <Flame className="size-3.5" />,
   watch: <Play className="size-3.5" />,
+  events: <Calendar className="size-3.5" />,
   gallery: <ImageIcon className="size-3.5" />,
 };
 
@@ -23,8 +24,11 @@ function getIconKey(href: string): string {
   if (href.includes("pln-ui")) return "pln";
   if (href.includes("poly-ibadan")) return "poly";
   if (href.includes("impact")) return "impact";
+  if (href.includes("/mentoring-school/pg")) return "impact";
+  if (href.includes("/mentoring-school")) return "prayers";
   if (href.includes("about")) return "about";
   if (href.includes("prophetic-prayers")) return "prayers";
+  if (href.includes("events")) return "events";
   if (href.includes("gallery") && !href.includes("watch")) return "gallery";
   if (href.includes("media") || href.includes("watch")) return "watch";
   return "about";
@@ -49,7 +53,7 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { href: "/", label: "Home" },
   {
-    label: "Our Ministries",
+    label: "Ministries",
     dropdown: [
       {
         category: "",
@@ -58,14 +62,14 @@ const navLinks: NavLink[] = [
         ],
       },
       {
-        category: "Prophetic Conference",
+        category: "Conferences",
         items: [
           { label: "Lagos Prophetic Conference", href: "/ministries/lagos-prophetic-conference" },
           { label: "Ibadan Prophetic Conference", href: "/ministries/ibadan-prophetic-conference" },
         ],
       },
       {
-        category: "Campus Outreaches",
+        category: "Outreaches",
         items: [
           { label: "PLN-UI", href: "/ministries/pln-ui" },
           { label: "POLY Ibadan", href: "/ministries/poly-ibadan" },
@@ -75,18 +79,30 @@ const navLinks: NavLink[] = [
       {
         category: "",
         items: [
-          { label: "Prophetic Prayers with PG&PY", href: "/ministries/prophetic-prayers" },
+          { label: "Prophetic Prayers", href: "/ministries/prophetic-prayers" },
         ],
       },
     ],
   },
-  { href: "/events", label: "Events" },
+  {
+    label: "Apply for Mentorship",
+    dropdown: [
+      {
+        category: "",
+        items: [
+          { label: "Yemisi Dahunsi Mentoring School", href: "/mentoring-school" },
+          { label: "Mentorship with PG", href: "/mentoring-school/pg" },
+        ],
+      },
+    ],
+  },
   {
     label: "Media",
     dropdown: [
       {
         category: "",
         items: [
+          { label: "Events", href: "/events" },
           { label: "Watch & Listen", href: "/media" },
           { label: "Gallery", href: "/gallery" },
         ],
@@ -94,7 +110,7 @@ const navLinks: NavLink[] = [
     ],
   },
   { href: "/books", label: "Books" },
-  { href: "/join", label: "Partner / Volunteer" },
+  { href: "/join", label: "Partner" },
 ];
 
 export function Navbar() {
@@ -156,9 +172,10 @@ export function Navbar() {
                     <ChevronDown className={cn("size-3.5 transition-transform duration-200", isOpen && "rotate-180")} />
                   </button>
                   {isOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-xl border border-border shadow-xl py-3 animate-fade-in">
-                      {link.dropdown.map((cat) => (
-                        <div key={cat.category}>
+                    <div className="absolute top-full left-0 pt-2 -mt-2 w-64">
+                      <div className="bg-white rounded-xl border border-border shadow-xl py-3 animate-fade-in">
+                      {link.dropdown.map((cat, ci) => (
+                        <div key={`${cat.category}-${ci}`}>
                           {cat.category && (
                             <p className="px-4 py-1.5 text-[11px] font-semibold text-gold uppercase tracking-wider">
                               {cat.category}
@@ -185,6 +202,7 @@ export function Navbar() {
                           {cat.category && <div className="mx-4 my-1.5 h-px bg-border last:hidden" />}
                         </div>
                       ))}
+                    </div>
                     </div>
                   )}
                 </div>
@@ -291,8 +309,8 @@ export function Navbar() {
                       </button>
                       {isExpanded && (
                         <div className="ml-4 pl-3 border-l-2 border-gold/30 space-y-1 mb-1">
-                          {link.dropdown.map((cat) => (
-                            <div key={cat.category}>
+                          {link.dropdown.map((cat, ci) => (
+                            <div key={`${cat.category}-${ci}`}>
                               {cat.category && (
                                 <p className="px-4 py-1.5 text-[11px] font-semibold text-gold uppercase tracking-wider">
                                   {cat.category}
